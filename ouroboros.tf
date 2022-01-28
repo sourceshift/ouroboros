@@ -2,7 +2,7 @@ resource "github_repository" "ouroboros" {
   name               = "ouroboros"
   license_template   = var.license_template
   description        = "Manage the current github sourceshift organization"
-  visibility         = "private"
+  visibility         = "public"
   gitignore_template = "Terraform"
   auto_init          = true
 }
