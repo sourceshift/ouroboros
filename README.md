@@ -1,58 +1,74 @@
-# Ouroboros : Github Templates
+# Ouroboros : GitHub Templates
 
-[Terraform](https://www.terraform.io) Teamplates for [SourceShift Oraganization](https://github.com/sourceshift).
+[Terraform](https://www.terraform.io) Templates for [SourceShift Organization](https://github.com/sourceshift).
 
-## Backend Configuration
+## Workflow and Configuration
 
-Terraform state is stored in a S3 bucket `linode_s3_backend_config.tf`.
+### @ Backend
+
+Current backend is stored at `./backend_config.tf`
 
 ```hcl
 terraform {
-  backend "s3" {
-    bucket                      = "ouroboros"
-    region                      = "us-east-1"
-    endpoint                    = "us-east-1.linodeobjects.com"
-    key                         = "ouroboros/main.tfstate"
-    skip_credentials_validation = true
+  cloud {
+    organization = "sourceshift"
+    workspaces {
+      name = "ouroboros"
+    }
   }
 }
 ```
 
-## How to use
+### @ GitHub
+
+* Actions: Trigger Push on Main Branch, [Terraform Actions](.github/workflows/terraform.yml)
+* Access token to app.terraform.io is stored in GitHub Actions secrets `TF_API_TOKEN`. This allows GitHub Actions to
+  communicate with [Terraform Cloud](https://app.terraform.io/app/sourceshift/workspaces/ouroboros).
+
+### @ Terraform Cloud
+
+* GitHub Access Token is added in Terraform Cloud Workspace variables `Terraform variable` with key `GITHUB_TOKEN` and
+  marked as `Sensitive`
+
+## Local Run
 
 Make sure the [Terraform Binary](https://www.terraform.io/downloads) is in your PATH.
 
-Make sure to populate the file `.secret.linode_s3_backend_config.json` with S3 credentials.
+### [Terraform Login](https://www.terraform.io/cli/commands/login) to [Terraform cloud](https://app.terraform.io/app/sourceshift)
+
+```shell
+terraform login
+```
+or
+populate `$HOME/.terraform.d/credentials.tfrc.json`
 
 ```json
 {
-    "access_key": "",
-    "secret_key": ""
+  "credentials": {
+    "app.terraform.io": {
+      "token": "xxxx.xxxx.xxxxxxxx"
+    }
+  }
 }
 ```
 
-Initialize the Terraform workspace with `terraform init`.
+### Initialize the Terraform workspace with `terraform init`.
 
-```bash
-terraform init -input=false -backend-config=".secret.linode_s3_backend_config.json" -reconfigure -upgrade
+```shell
+terraform init
 ```
 
-Make sure to populate the file `.secret.all.json` with sensetive data needed.
+### Make changes and plan the changes with `terraform plan`.
 
-```json
-{
-    "GITHUB_TOKEN": ""
-}
+```shell
+terraform plan
 ```
 
-Make changes and plan the changes with `terraform plan`.
+### Apply the changes with `terraform apply`.
 
-```bash
-terraform plan -input=false -var-file=".secret.all.json" -out="./tfplan"
+```shell
+terraform apply
 ```
 
-Apply the changes with `terraform apply`.
-
-```bash
-terraform apply "./tfplan"
-```
+## TODO
+GitHub Actions secrets `TF_API_TOKEN` for [ouroboros](https://github.com/sourceshift/ouroboros) is added manually. This should be pulled from vault.
